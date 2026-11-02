@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import {
@@ -49,7 +49,11 @@ export function MatchTable({
   const visible = groups.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
 
   // A new filter or search starts again from the first page.
-  useEffect(() => setPage(0), [groups]);
+  const groupsRef = useRef(groups);
+  if (groupsRef.current !== groups) {
+    groupsRef.current = groups;
+    setPage(0);
+  }
 
   function toggle(id: string) {
     setExpanded((prev) => {

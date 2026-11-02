@@ -242,8 +242,9 @@ export function HealthScoreGauge() {
     factors.reduce((s, f) => s + f.score, 0) / factors.length
   );
   const prevOverallRef = useRef(overall);
-  const trendDelta = overall - prevOverallRef.current;
+  const [trendDelta, setTrendDelta] = useState(0);
   useEffect(() => {
+    setTrendDelta(overall - prevOverallRef.current);
     prevOverallRef.current = overall;
   }, [overall]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import {
   LandmarkIcon,
@@ -102,9 +102,11 @@ export function BankSourceCards() {
   }, [filesBySource, result]);
 
   const [order, setOrder] = useState<number[]>([]);
-  useEffect(() => {
+  const cardsRef = useRef(cards);
+  if (cardsRef.current !== cards) {
+    cardsRef.current = cards;
     setOrder(cards.map((_, i) => i));
-  }, [cards.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   const cycle = useCallback(() => {
     setOrder((prev) => {

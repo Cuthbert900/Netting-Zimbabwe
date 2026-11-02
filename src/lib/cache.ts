@@ -5,7 +5,7 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
-const cache = new Map<string, CacheEntry<any>>();
+const cache = new Map<string, CacheEntry<unknown>>();
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
 /**

@@ -66,7 +66,12 @@ export async function POST(request: Request) {
   const cacheKey = hash.digest('hex');
 
   // Check the cache
-  const cached = getFromCache<any>(cacheKey);
+  const cached = getFromCache<{
+    reply: string;
+    usage: { prompt: number; completion: number };
+    configured: boolean;
+    provider: string;
+  }>(cacheKey);
   if (cached) {
     return NextResponse.json(cached);
   }

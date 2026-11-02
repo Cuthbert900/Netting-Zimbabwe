@@ -336,8 +336,8 @@ function StatusTab() {
           <div>
             <p className="text-lg font-semibold">Active build</p>
             <p className="text-sm text-muted-foreground">
-              {doneCount} of {projectStatus.length} areas shipped — see README
-              for full detail
+              Answers about how this app works, who to contact, and what's built
+              so far
             </p>
           </div>
         </CardContent>
@@ -347,7 +347,7 @@ function StatusTab() {
         <CardHeader>
           <CardTitle>Build status by area</CardTitle>
           <CardDescription>
-            What&apos;s working today, and what&apos;s still ahead
+            What's working today, and what's still ahead
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -402,8 +402,8 @@ export function SupportPageClient() {
           Help & Support
         </h1>
         <p className="text-sm text-muted-foreground">
-          Answers about how this app works, who to contact, and what&apos;s
-          built so far
+          Answers about how this app works, who to contact, and what's built so
+          far
         </p>
       </div>
 
