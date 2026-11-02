@@ -1,0 +1,136 @@
+# Self-hosted Supabase — trimmed to what this app actually uses: Postgres,
+# GoTrue (auth), PostgREST (rest), postgres-meta (Studio's schema browser),
+# Studio (dashboard), Kong (API gateway), and Caddy (TLS termination /
+# reverse proxy). Deliberately excludes Realtime, Storage, Edge Functions,
+# and the analytics/Logflare stack — none of the app's three admin tables
+# need them, and every extra service is another thing to patch and secure.
+# Follows Supabase's own self-hosting reference architecture; add the
+# excluded services back the same way if a future feature needs them.
+#
+# Written to /opt/supabase/docker-compose.yml by cloud-init; brought up by
+# the systemd unit bootstrap.sh installs. Values come from the sibling
+# .env file, generated on first boot from Key Vault secrets — see
+# bootstrap.sh.
+
+services:
+  db:
+    image: supabase/postgres:15.1.0.147
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - /data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  auth:
+    image: supabase/gotrue:v2.158.1
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${SITE_URL}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: '${SITE_URL}/**'
+      # No public self-registration — accounts are created by an admin on
+      # the /admin/users page (or directly in Studio), never by signup.
+      GOTRUE_DISABLE_SIGNUP: 'true'
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true'
+      # No SMTP configured yet — admin-created users are auto-confirmed
+      # instead of getting a confirmation email. Wire up real SMTP before
+      # turning on self-service invites (see terraform/README.md).
+      GOTRUE_MAILER_AUTOCONFIRM: 'true'
+
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: 'false'
+
+  meta:
+    image: supabase/postgres-meta:v0.84.2
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+  studio:
+    image: supabase/studio:20241014-c083b3b
+    restart: unless-stopped
+    depends_on:
+      - meta
+      - kong
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SITE_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      DEFAULT_ORGANIZATION_NAME: 'Liquid Intelligent Technologies'
+      DEFAULT_PROJECT_NAME: 'Netting Reconciliation'
+
+  kong:
+    image: kong:2.8.1
+    restart: unless-stopped
+    depends_on:
+      - auth
+      - rest
+      - meta
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: '64 160k'
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+    volumes:
+      - ./kong.yml:/var/lib/kong/kong.yml:ro
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - kong
+      - studio
+    environment:
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD_HASH: ${DASHBOARD_PASSWORD_HASH}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8000:8000'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

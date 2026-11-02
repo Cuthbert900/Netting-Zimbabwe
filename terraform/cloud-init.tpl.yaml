@@ -1,0 +1,65 @@
+#cloud-config
+package_update: true
+packages:
+  - jq
+  - parted
+  - ca-certificates
+  - curl
+  - gnupg
+
+write_files:
+  - path: /opt/supabase/docker-compose.yml
+    encoding: b64
+    owner: root:root
+    permissions: '0644'
+    content: ${docker_compose_b64}
+
+  - path: /opt/supabase/kong.yml
+    encoding: b64
+    owner: root:root
+    permissions: '0644'
+    content: ${kong_config_b64}
+
+  - path: /opt/supabase/Caddyfile
+    encoding: b64
+    owner: root:root
+    permissions: '0644'
+    content: ${caddyfile_b64}
+
+  - path: /opt/supabase/bootstrap.sh
+    encoding: b64
+    owner: root:root
+    permissions: '0700'
+    content: ${bootstrap_sh_b64}
+
+  - path: /etc/systemd/system/supabase-bootstrap.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Bootstrap and start the self-hosted Supabase stack
+      After=network-online.target docker.service
+      Wants=network-online.target docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/opt/supabase/bootstrap.sh
+      TimeoutStartSec=600
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # Docker's own convenience script — reliably installs the compose-v2
+  # plugin (`docker compose`) across Ubuntu releases, unlike the
+  # apt-archive docker-compose-v2 package which lags behind.
+  - curl -fsSL https://get.docker.com | sh
+  - systemctl enable --now docker
+  # Azure CLI — used by bootstrap.sh to read/write Key Vault secrets via
+  # the VM's own managed identity, never a stored credential.
+  - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+  - systemctl daemon-reload
+  - systemctl enable --now supabase-bootstrap.service
+
+final_message: 'Supabase self-host bootstrap kicked off after $UPTIME seconds — check status with: systemctl status supabase-bootstrap'

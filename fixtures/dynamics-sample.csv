@@ -1,0 +1,31 @@
+Date,Reference,Amount,Currency,Description
+2026-04-01,INV-001,12500.00,USD,Customer payment - ABC Corp
+2026-04-02,INV-002,8750.50,USD,Invoice payment - XYZ Ltd
+2026-04-03,INV-003,15000.00,USD,Settlement - Global Tech
+2026-04-04,INV-004,5200.00,USD,Payment received - Acme Inc
+2026-04-05,INV-005,9800.00,USD,Contract payment - MegaCorp
+2026-04-06,INV-006,4300.00,USD,Service fee - CloudSystems
+2026-04-07,INV-007,11200.00,USD,Quarterly billing - FastNet
+2026-04-08,INV-008,6700.00,USD,License renewal - DataPro
+2026-04-09,INV-009,18500.00,USD,Enterprise subscription
+2026-04-10,INV-010,3200.00,USD,Training services
+2026-04-11,INV-011,7800.00,USD,Consulting fees
+2026-04-12,INV-012,14500.00,USD,Hardware shipment
+2026-04-13,INV-013,5600.00,USD,Software maintenance
+2026-04-14,INV-014,9200.00,USD,Professional services
+2026-04-15,INV-015,21000.00,USD,Annual support contract
+2026-04-16,INV-016,4800.00,USD,Cloud hosting fees
+2026-04-17,INV-017,13300.00,USD,Network upgrade
+2026-04-18,INV-018,7100.00,USD,Security audit
+2026-04-19,INV-019,16400.00,USD,Managed services
+2026-04-20,INV-020,3900.00,USD,Backup services
+2026-04-21,INV-021,8600.00,USD,Telecom services
+2026-04-22,INV-022,15400.00,USD,Data center services
+2026-04-23,INV-023,6100.00,USD,Consulting engagement
+2026-04-24,INV-024,10700.00,USD,Implementation services
+2026-04-25,INV-025,23800.00,USD,Infrastructure project
+2026-04-26,INV-026,5500.00,USD,Monitoring services
+2026-04-27,INV-027,12100.00,USD,Migration services
+2026-04-28,INV-028,6900.00,USD,Optimization project
+2026-04-29,INV-029,17300.00,USD,Strategic consulting
+2026-04-30,INV-030,4100.00,USD,Support renewal

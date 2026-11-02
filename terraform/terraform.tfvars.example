@@ -1,0 +1,19 @@
+# Copy to terraform.tfvars and fill in — terraform.tfvars is gitignored,
+# never commit real values (especially allowed_admin_cidrs / SSH keys are
+# fine to commit, but keep the habit).
+
+# location             = "South Africa North"
+# admin_ssh_public_key = "ssh-ed25519 AAAA... you@yourlaptop"
+
+admin_ssh_public_key = ""
+
+# Restrict to your office/VPN egress IP(s) — never 0.0.0.0/0.
+allowed_admin_cidrs = [
+  "203.0.113.10/32",
+]
+
+# Leave both empty for a first smoke-test boot over plain HTTP on :8000.
+# Set both before going anywhere near production — Kong/GoTrue exchange
+# real credentials and this must be TLS.
+domain_name       = ""
+letsencrypt_email = ""
